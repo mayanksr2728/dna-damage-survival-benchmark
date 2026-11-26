@@ -74,7 +74,7 @@ Apply all out-of-sample data partitioning **before** any model fitting, prior tu
   1. **M5 vs. M2**
   2. **M5 vs. M4**
   Label all other pairwise model comparisons as **exploratory**.
-* **Success Criterion:** **M5** achieves lower held-out **$\text{log RMSE}$** than both **M2** and **M4**, with a paired-difference **95% confidence interval**—computed via **cluster bootstrapping** grouped by cell line or source—excluding zero across the majority of splits.
+* **Success Criterion:** **M5** achieves lower held-out **$\text{log RMSE}$** than both **M2** and **M4**, with a paired-difference **95% confidence interval**-computed via **cluster bootstrapping** grouped by cell line or source-excluding zero across the majority of splits.
 * **Negative-Result Protocol:** If **M5** does not outperform the baselines under these rules, report the outcome as a **pre-specified failure-mode benchmark** without post-hoc modification of evaluation metrics or success thresholds.
 
 ---
