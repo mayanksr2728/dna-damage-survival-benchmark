@@ -1,51 +1,90 @@
-# **Cell Survival Models** for Photon and Heavy-Ion Benchmarking
+# Cell Survival Models for Photon and Heavy-Ion Benchmarking
 
-Six interlocking topics define a defensible benchmark: the LQ baseline and its parameter drift, microdosimetric RBE scaling, DSB complexity partitioning, repair-misrepair ODEs, public datasets, and leakage-free validation. Each is summarized below with its governing equations and typical parameter bounds.
+> **Core Scope:** Six interlocking topics define a defensible benchmark: the LQ baseline and its parameter drift, microdosimetric RBE scaling, DSB complexity partitioning, repair-misrepair ODEs, public datasets, and leakage-free validation.
 
-## LQ Baseline and Parameter Drift
+---
 
-The standard model is S = exp(-α D - β D²), with α (Gy⁻¹) and β (Gy⁻²) representing single-track and two-track lethal events (Van Leeuwen et al., 2018; McMahon, 2018; Dalalas et al., 2024). Its assumptions are Poisson-distributed lethal lesions and linear dose production of biologically important lesions below ~20 Gy (Curtis, 1988; Loan & Bhat, 2022). Kinetic derivations show almost every repair/misrepair model collapses to LQ at low-to-intermediate dose, with two-track (β) lethality largely from dicentric aberrations and one-track (α) lethality from other mechanisms (Sachs et al., 1997).
+## 1. LQ Baseline and Parameter Drift
 
-Parameters describe one specific condition only; full characterization would require dependence on phenotype, cell cycle, microenvironment, radiation type, and delivery (McMahon, 2018). Empirically, α rises with LET while β shows no systematic change (Andō & Goodhead, 2016; Zanni et al., 2024), and α and β are anti-correlated during photon fits, so different LQ fits yield different RBE predictions (Van Leeuwen et al., 2018; Zanni et al., 2024). At high dose the LQ overestimates effect (Qin et al., 2026), and at low dose it underestimates survival because lesions are over-dispersed rather than Poisson (Loan & Bhat, 2022). A quasi-mechanistic alternative redefines α as critical damages per Gy, β as repair probability, and m as the no-repair threshold, fitting 431 datasets best at m = 6 (Qin et al., 2026).
+The standard Linear-Quadratic (LQ) model is defined as:
+
+$$
+S = \exp(-\alpha D - \beta D^2)
+$$
+
+where $\alpha\text{ (Gy}^{-1}\text{)}$ and $\beta\text{ (Gy}^{-2}\text{)}$ represent single-track and two-track lethal events (Van Leeuwen et al., 2018; McMahon, 2018; Dalalas et al., 2024).
+
+* **Core Assumptions:** Poisson-distributed lethal lesions and linear dose production of biologically important lesions below $\sim 20\text{ Gy}$ (Curtis, 1988; Loan & Bhat, 2022). Kinetic derivations show almost every repair/misrepair model collapses to LQ at low-to-intermediate dose, with two-track ($\beta$) lethality largely from dicentric aberrations and one-track ($\alpha$) lethality from other mechanisms (Sachs et al., 1997).
+* **Condition Specificity & Drift:** Parameters describe one specific condition only; full characterization depends on phenotype, cell cycle, microenvironment, radiation type, and delivery (McMahon, 2018). Empirically, $\alpha$ rises with LET while $\beta$ shows no systematic change (Andō & Goodhead, 2016; Zanni et al., 2024). Because $\alpha$ and $\beta$ are anti-correlated during photon fits, different LQ fits yield different RBE predictions (Van Leeuwen et al., 2018; Zanni et al., 2024).
+* **Dose Extremes:** At high dose, LQ overestimates biological effect (Qin et al., 2026); at low dose, it underestimates survival because lesions are over-dispersed rather than Poisson-distributed (Loan & Bhat, 2022).
+* **Quasi-Mechanistic Alternative:** Redefines $\alpha$ as critical damages per Gy, $\beta$ as repair probability, and $m$ as the no-repair threshold, fitting 431 datasets best at $m = 6$ (Qin et al., 2026).
 
 | Parameter | Typical Range | Notes |
-|---|---|---|
-| α (Gy⁻¹) | 0.05–0.5 (photons); rises with LET | Most LET-sensitive term (Andō & Goodhead, 2016) |
-| β (Gy⁻²) | 0.01–0.08; ~constant or falling at high LET | Anti-correlated with α (Zanni et al., 2024) |
-| α/β (Gy) | 1.5–10 (tissue-dependent) | High heterogeneity, I² > 75% (Van Leeuwen et al., 2018) |
-| m (threshold) | 5–7 optimal | Quasi-mechanistic model (Qin et al., 2026) |
+| :--- | :--- | :--- |
+| $\alpha\text{ (Gy}^{-1}\text{)}$ | $0.05\text{–}0.5$ (photons); rises with LET | Most LET-sensitive term (Andō & Goodhead, 2016) |
+| $\beta\text{ (Gy}^{-2}\text{)}$ | $0.01\text{–}0.08$; $\sim$constant or falling at high LET | Anti-correlated with $\alpha$ (Zanni et al., 2024) |
+| $\alpha/\beta\text{ (Gy)}$ | $1.5\text{–}10$ (tissue-dependent) | High heterogeneity, $I^2 > 75\%$ (Van Leeuwen et al., 2018) |
+| $m$ (threshold) | $5\text{–}7$ optimal | Quasi-mechanistic model (Qin et al., 2026) |
 
-**Figure 1:** Typical LQ parameter bounds for Python implementation
+*Figure 1: Typical LQ parameter bounds for Python implementation.*
 
-## MKM and Microdosimetric RBE Scaling
+---
 
-The MKM splits the nucleus into domains (~0.2–0.4 µm) where type I (lethal) and type II (potentially lethal) lesions form proportionally to specific energy z (Dalalas et al., 2024). The linear term becomes α = α₀ + z_Dβ₀ with β = β₀, where z_D is dose-mean specific energy (Dalalas et al., 2024). Sublethal lesions follow four fates: monomolecular conversion to lethal, pairwise combination, repair, or persistence-then-fixation (Dalalas et al., 2024; Curtis, 1988). Domain radius controls LET dependence of α; nucleus radius controls overkill (Abolfath et al., 2020).
+## 2. MKM and Microdosimetric RBE Scaling
 
-Microdosimetric quantities are preferred over LET because they capture energy-loss straggling and finite δ-ray range (Dalalas et al., 2024). Empirical models parameterize RBE via dose-averaged LET, while biophysical models use dose-averaged lineal energy y_D (Dalalas et al., 2024; Qi et al., 2026). At 2 Gy, proton RBE ranges 1.0–1.2 proximally but reaches 1.3–1.5 distally for low α/β tissues (Dalalas et al., 2024). Empirical models are limited by their training cell lines (e.g., V79-only), whereas McNamara and Tian models span broader datasets (Dalalas et al., 2024). GPU dose engines like FRoG implement both LEM and MKM for p, ⁴He, ¹²C, and ¹⁶O (Stewart, 2020).
+The Microdosimetric Kinetic Model (MKM) splits the nucleus into domains ($\sim 0.2\text{–}0.4\text{ }\mu\text{m}$) where type I (lethal) and type II (potentially lethal) lesions form proportionally to specific energy $z$ (Dalalas et al., 2024):
 
-## DSB Complexity and Yields
+$$
+\alpha = \alpha_0 + z_D \beta_0, \qquad \beta = \beta_0
+$$
 
-DSB yields rise with LET (Zanni et al., 2024; Kundrát & Stewart, 2006), with prompt DSB yields of 70–120 Gy⁻¹ cell⁻¹ for protons and enzymatic DSBs rising from ~40 to 70 Gy⁻¹ cell⁻¹ (Kundrát & Stewart, 2006). Apparent DSB rates of 5–16 DSBs/cell/Gy decrease with LET as measured by foci (Nikitaki et al., 2016). Lethal events correlate with DSBs containing three or more elementary lesions, not with other damage classes (Kundrát & Stewart, 2006). Minimum LETs of 9.4 and 11.5 keV/µm are needed for single-track clustered damage by protons and alphas (Rezaee & Adhikary, 2024). Qi et al. modeled survival as a third-order polynomial of DSB complexity, achieving RMSE 0.218 (H460) and 0.170 (H1437) across 19 conditions (Qi et al., 2026). Clustered DSBs resist canonical NHEJ due to short DNA fragments, shifting repair toward HR and alternative NHEJ (Nickoloff et al., 2020). Local DSB density (cluster density) linearly predicts misrepair regardless of ion species, with 7.3% residual DSBs at 24 h (Henthorn et al., 2018).
+where $z_D$ is the dose-mean specific energy (Dalalas et al., 2024).
 
-## Repair-Misrepair ODEs and Lethality Mapping
+* **Lesion Fates & Geometry:** Sublethal lesions follow four fates: monomolecular conversion to lethal, pairwise combination, repair, or persistence-then-fixation (Dalalas et al., 2024; Curtis, 1988). Domain radius controls the LET dependence of $\alpha$, while nucleus radius controls overkill (Abolfath et al., 2020).
+* **Microdosimetry vs. LET:** Microdosimetric quantities are preferred over LET because they capture energy-loss straggling and finite $\delta$-ray range (Dalalas et al., 2024). Empirical models parameterize RBE via dose-averaged LET, whereas biophysical models use dose-averaged lineal energy $y_D$ (Dalalas et al., 2024; Qi et al., 2026).
+* **Proton RBE & Engines:** At $2\text{ Gy}$, proton RBE ranges from $1.0\text{–}1.2$ proximally to $1.3\text{–}1.5$ distally for low $\alpha/\beta$ tissues (Dalalas et al., 2024). Empirical models are limited by training cell lines (e.g., V79-only), whereas McNamara and Tian models span broader datasets (Dalalas et al., 2024). GPU dose engines like **FRoG** implement both LEM and MKM for $p$, $^4\text{He}$, $^{12}\text{C}$, and $^{16}\text{O}$ (Stewart, 2020).
 
-Curtis's LPL model posits lethal (irreparable) and potentially lethal (repairable) lesions, with correct repair (first-order), binary misrepair (second-order), and linear fixation competing (Curtis, 1986). Two repair subclasses exist: fast (t₁/₂ 10–15 min) and slow (t₁/₂ 1–2 h) (Curtis, 1988). The governing ODEs are:
+---
 
-dN_PL/dt = η_PLḊ - ε_PLN_PL - ε₂ N_PL² - κ N_PL
+## 3. DSB Complexity and Yields
 
-dN_L/dt = η_LḊ + κ N_PL + ε₂ N_PL²
+* **Yields vs. Foci:** DSB yields rise with LET (Zanni et al., 2024; Kundrát & Stewart, 2006), with prompt DSB yields of $70\text{–}120\text{ Gy}^{-1}\text{ cell}^{-1}$ for protons and enzymatic DSBs rising from $\sim 40$ to $70\text{ Gy}^{-1}\text{ cell}^{-1}$ (Kundrát & Stewart, 2006). Conversely, apparent DSB rates of $5\text{–}16\text{ DSBs/cell/Gy}$ decrease with LET when measured via foci (Nikitaki et al., 2016).
+* **Lethality & LET Thresholds:** Lethal events correlate specifically with DSBs containing $\ge 3$ elementary lesions (Kundrát & Stewart, 2006). Minimum LETs of $9.4$ and $11.5\text{ keV/}\mu\text{m}$ are required for single-track clustered damage by protons and $\alpha$-particles, respectively (Rezaee & Adhikary, 2024).
+* **Complexity Modeling & Repair Shift:** Qi et al. modeled survival as a third-order polynomial of DSB complexity, achieving $\text{RMSE} = 0.218$ (H460) and $0.170$ (H1437) across 19 conditions (Qi et al., 2026). Clustered DSBs resist canonical NHEJ due to short DNA fragments, shifting repair toward HR and alternative NHEJ (Nickoloff et al., 2020). Local DSB cluster density linearly predicts misrepair regardless of ion species, leaving $7.3\%$ residual DSBs at $24\text{ h}$ (Henthorn et al., 2018).
 
-where η are production rates, ε_PL repair, ε₂ binary misrepair, and κ fixation (Curtis, 1988). The RMR model shares the binary misrepair assumption (Curtis, 1988). Lethality maps via S = exp(-N_L) at mitosis, with RaDRI showing near-LQ dose dependence arising almost exclusively from DSB misjoining (Loan & Bhat, 2022). The Medras model uses 11 shared mechanistic parameters, predicting survival, aberrations, and mutation with R² > 0.9 for mean inactivation dose (McMahon et al., 2016). A Feller square-root SDE framework links single-cell γ-H2AX kinetics to LQ via Feynman-Kac (Kara & Tuğrul, 2026).
+---
 
-## Benchmarks and Validation
+## 4. Repair-Misrepair ODEs and Lethality Mapping
 
-PIDE contains >1,100 photon–ion curve pairs with raw data and uniformly re-derived LQ parameters (Loan & Bhat, 2022). Its caveats include missing SOBP LET metadata and large inter-experiment variability (Zanni et al., 2024; Sachs et al., 1997). RadPhysBio adds ML-predicted α with LET as top feature, though β remains poorly predicted (Zanni et al., 2024). Individual cell lines show ~20% survival variability under identical setup (McMahon, 2018). For validation, LOCLO/LOQO/LOSO splits must hold out entire cell lines, radiation qualities, or source laboratories respectively; re-optimizing the DSB rejoining range to 0.0335 µm lowered RMSD by >70% (Nikitaki et al., 2016). Cross-endpoint constraints (e.g., using repair kinetics to inform dose-rate effects) reduce overfitting risk (Rezaee & Adhikary, 2024).
+Curtis's Lethal and Potentially Lethal (LPL) model posits lethal (irreparable) and potentially lethal (repairable) lesions, with first-order correct repair, second-order binary misrepair, and linear fixation competing across two repair subclasses: **fast** ($t_{1/2} \approx 10\text{–}15\text{ min}$) and **slow** ($t_{1/2} \approx 1\text{–}2\text{ h}$) (Curtis, 1986; Curtis, 1988).
 
-## Conclusion
+The governing ODEs are:
 
-Fixed-radiosensitivity LQ models are parsimonious but condition-specific, with α drifting systematically with LET while β remains comparatively stable. Damage-complexity models (MKM, Medras, Qi polynomial) capture the mechanistic basis of RBE but require careful parameterization and leakage-free validation against PIDE and RadPhysBio, with log-RMSE reporting and LOCLO/LOQO/LOSO splits as the appropriate standards.
- 
-_These search results were found and analyzed using Consensus, an AI-powered search engine for research. Try it at https://consensus.app. © 2026 Consensus NLP, Inc. Personal, non-commercial use only; redistribution requires copyright holders’ consent._
+$$
+\frac{dN_{PL}}{dt} = \eta_{PL}\dot{D} - \varepsilon_{PL}N_{PL} - \varepsilon_2 N_{PL}^2 - \kappa N_{PL}
+$$
+
+$$
+\frac{dN_L}{dt} = \eta_L\dot{D} + \kappa N_{PL} + \varepsilon_2 N_{PL}^2
+$$
+
+where $\eta$ denotes production rates, $\varepsilon_{PL}$ linear repair, $\varepsilon_2$ binary misrepair, and $\kappa$ fixation (Curtis, 1988).
+
+* **RMR & Lethality Mapping:** The RMR model shares the binary misrepair assumption (Curtis, 1988). Lethality maps via $S = \exp(-N_L)$ at mitosis, with RaDRI showing near-LQ dose dependence arising almost exclusively from DSB misjoining (Loan & Bhat, 2022).
+* **Mechanistic & Stochastic Extensions:** The **Medras** model uses 11 shared mechanistic parameters to predict survival, aberrations, and mutation with $R^2 > 0.9$ for mean inactivation dose (McMahon et al., 2016). A Feller square-root SDE framework links single-cell $\gamma$-H2AX kinetics to LQ via Feynman-Kac (Kara & Tuğrul, 2026).
+
+---
+
+## 5. Benchmarks and Validation
+
+* **Public Datasets:** **PIDE** contains $>1{,}100$ photon–ion curve pairs with raw data and uniformly re-derived LQ parameters (Loan & Bhat, 2022), though it lacks SOBP LET metadata and exhibits large inter-experiment variability (Zanni et al., 2024; Sachs et al., 1997). **RadPhysBio** adds ML-predicted $\alpha$ with LET as the top feature, though $\beta$ remains poorly predicted (Zanni et al., 2024).
+* **Leakage-Free Splits:** Individual cell lines show $\sim 20\%$ survival variability under identical experimental setups (McMahon, 2018). Validation must use **LOCLO / LOQO / LOSO** splits to hold out entire cell lines, radiation qualities, or source laboratories, respectively. Re-optimizing the DSB rejoining range to $0.0335\text{ }\mu\text{m}$ lowered RMSD by $>70\%$ (Nikitaki et al., 2016), and cross-endpoint constraints (using repair kinetics to inform dose-rate effects) reduce overfitting risk (Rezaee & Adhikary, 2024).
+
+---
+
+## 6. Conclusion
+
+> Fixed-radiosensitivity LQ models are parsimonious but condition-specific, with $\alpha$ drifting systematically with LET while $\beta$ remains comparatively stable. Damage-complexity models (**MKM**, **Medras**, **Qi polynomial**) capture the mechanistic basis of RBE but require careful parameterization and leakage-free validation against **PIDE** and **RadPhysBio**, using **log-RMSE** reporting and **LOCLO/LOQO/LOSO** splits as the standard.
  
 ## References
  
